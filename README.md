@@ -65,3 +65,60 @@ This extension does not add any VS Code settings.
 ### 0.1.0
 
 Initial release of Code2Summarize
+
+### 0.1.1
+
+# Configuration Options for Code2Summarize
+
+Code2Summarize now supports customizable settings for **ignored folders** and **allowed file extensions** through VS Code's built-in settings system.
+
+---
+
+## Available Settings
+
+| Setting                              | Description                                         |
+| ------------------------------------- | --------------------------------------------------- |
+| `code2summarize.ignoreFolders`        | Array of folder names to exclude from summarization  |
+| `code2summarize.allowedExtensions`    | Array of file extensions to include in summarization |
+
+---
+
+## How to Configure
+
+### Using VS Code Settings UI
+
+1. **Open VS Code Settings**  
+   *File > Preferences > Settings* or press <kbd>Ctrl</kbd> + <kbd>,</kbd>
+
+2. **Search for `code2summarize`**
+
+3. **Edit the arrays** directly in the settings UI.
+
+---
+
+### Using `settings.json`
+
+Add the following to your `settings.json` file:
+
+```json
+"code2summarize.ignoreFolders": [
+  "node_modules",
+  ".git",
+  "bin",
+  "obj",
+  "dist",
+  // Add your custom folders to ignore
+  "my-custom-folder"
+],
+
+"code2summarize.allowedExtensions": [
+  ".cs",
+  ".py",
+  ".jsx",
+  ".ts",
+  ".html",
+  ".js",
+  // Add your custom extensions
+  ".css"
+]
+
