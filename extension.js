@@ -1,4 +1,3 @@
-// extension.js
 const vscode = require('vscode');
 const fs = require('fs');
 const path = require('path');
@@ -6,36 +5,6 @@ const path = require('path');
 /**
  * @param {vscode.ExtensionContext} context
  */
-
-const ignoreFolders = [
-	'node_modules',      // JS/TS dependencies
-	'.git',              // Git repository metadata
-	'bin',               // .NET compiled binaries
-	'obj',               // .NET intermediate build output
-	'dist',              // Build output (JS/TS)
-	'build',             // Alternative build folder
-	'.vs',               // Visual Studio specific metadata
-	'.vscode',           // VS Code settings (optional)
-	'__pycache__',       // Python bytecode cache
-	'.pytest_cache',     // Pytest cache folder
-	'.mypy_cache',       // mypy type checker cache
-	'.venv',             // Python virtual environment
-	'env',               // Common alt name for Python venv
-	'venv',              // Common alt name for Python venv
-	'.idea',             // JetBrains IDE settings
-	'.next',             // Next.js build output
-	'.angular',          // Angular build cache
-	'coverage',          // Test coverage reports
-	'logs',              // Log output directories
-	'.DS_Store',         // macOS metadata (not a folder, but often excluded)
-	'target',            // Java/Maven/Gradle build output
-	'.gradle',           // Gradle build cache
-	'out',               // General build output
-	'.turbo',            // Turborepo cache
-	'.cache',            // Cache folders (e.g., Vite, Astro)
-  ];
-
-  
 function activate(context) {
     console.log('Code2Summarize is now active!');
 
@@ -50,8 +19,13 @@ function activate(context) {
         // Assuming we're working with the first folder in the workspace
         const rootPath = workspaceFolders[0].uri.fsPath;
         
+        // Get configuration settings
+        const config = vscode.workspace.getConfiguration('code2summarize');
+        const ignoreFolders = config.get('ignoreFolders') || [];
+        const allowedExtensions = config.get('allowedExtensions') || ['.cs', '.py', '.jsx', '.ts', '.html'];
+        
         // Start the summarization process
-        summarizeWorkspace(rootPath)
+        summarizeWorkspace(rootPath, ignoreFolders, allowedExtensions)
             .then(() => {
                 vscode.window.showInformationMessage('Code2Summarize completed successfully!');
             })
@@ -67,11 +41,10 @@ function activate(context) {
 /**
  * Main function to summarize the workspace
  * @param {string} rootPath 
+ * @param {string[]} ignoreFolders
+ * @param {string[]} allowedExtensions
  */
-async function summarizeWorkspace(rootPath) {
-    // Define allowed file extensions
-    const allowedExtensions = ['.cs', '.py', '.jsx', '.ts', '.html'];
-    
+async function summarizeWorkspace(rootPath, ignoreFolders, allowedExtensions) {
     // Output file name
     const outputFileName = `${path.basename(rootPath)}_Code2Summarize.txt`;
     const outputFilePath = path.join(rootPath, outputFileName);
@@ -81,13 +54,13 @@ async function summarizeWorkspace(rootPath) {
     
     try {
         // Step 1: Generate ASCII tree structure
-        const treeStructure = await generateTreeStructure(rootPath, allowedExtensions);
+        const treeStructure = await generateTreeStructure(rootPath, allowedExtensions, ignoreFolders);
         outputStream.write('# Project Structure\n\n');
         outputStream.write(treeStructure);
         outputStream.write('\n\n# File Contents\n\n');
         
         // Step 2: Process files and write content
-        await processFiles(rootPath, allowedExtensions, outputStream);
+        await processFiles(rootPath, allowedExtensions, outputStream, ignoreFolders);
         
         // Close the stream
         outputStream.end();
@@ -101,9 +74,10 @@ async function summarizeWorkspace(rootPath) {
  * Generate ASCII tree structure of the project
  * @param {string} rootPath 
  * @param {string[]} allowedExtensions 
+ * @param {string[]} ignoreFolders
  * @returns {Promise<string>}
  */
-async function generateTreeStructure(rootPath, allowedExtensions) {
+async function generateTreeStructure(rootPath, allowedExtensions, ignoreFolders) {
     let treeOutput = '';
     const rootName = path.basename(rootPath);
     
@@ -128,8 +102,8 @@ async function generateTreeStructure(rootPath, allowedExtensions) {
             const newPrefix = prefix + (isLast ? '    ' : '│   ');
             
             if (stats.isDirectory()) {
-                // Skip node_modules, .git, and other common unnecessary folders
-				if (ignoreFolders.includes(item)) {
+                // Skip folders in the ignore list
+                if (ignoreFolders.includes(item)) {
                     continue;
                 }
                 
@@ -154,9 +128,10 @@ async function generateTreeStructure(rootPath, allowedExtensions) {
  * @param {string} rootPath 
  * @param {string[]} allowedExtensions 
  * @param {fs.WriteStream} outputStream 
+ * @param {string[]} ignoreFolders
  * @returns {Promise<void>}
  */
-async function processFiles(rootPath, allowedExtensions, outputStream) {
+async function processFiles(rootPath, allowedExtensions, outputStream, ignoreFolders) {
     /**
      * Recursively process files in directories
      * @param {string} dirPath 
@@ -170,8 +145,8 @@ async function processFiles(rootPath, allowedExtensions, outputStream) {
             const stats = fs.statSync(itemPath);
             
             if (stats.isDirectory()) {
-                // Skip node_modules, .git, and other common unnecessary folders
-				if (ignoreFolders.includes(item)) {
+                // Skip folders in the ignore list
+                if (ignoreFolders.includes(item)) {
                     continue;
                 }
                 

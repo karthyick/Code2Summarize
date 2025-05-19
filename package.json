@@ -2,7 +2,7 @@
   "name": "code2summarize",
   "displayName": "Code2Summarize",
   "description": "Summarize code files in your project for C#, Python, React, and Angular",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "engines": {
     "vscode": "^1.60.0"
   },
@@ -17,13 +17,60 @@
   "activationEvents": [],
   "main": "./extension.js",
   "contributes": {
-    "commands": [
-      {
-        "command": "code2summarize.summarize",
-        "title": "Code2Summarize: Generate Code Summary"
+  "commands": [
+    {
+      "command": "code2summarize.summarize",
+      "title": "Summarize Code"
+    }
+  ],
+  "configuration": {
+    "title": "Code2Summarize: Generate Code Summary",
+    "properties": {
+      "code2summarize.ignoreFolders": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "default": [
+          "node_modules",
+          ".git",
+          "bin",
+          "obj",
+          "dist",
+          "build",
+          ".vs",
+          ".vscode",
+          "__pycache__",
+          ".pytest_cache",
+          ".mypy_cache",
+          ".venv",
+          "env",
+          "venv",
+          ".idea",
+          ".next",
+          ".angular",
+          "coverage",
+          "logs",
+          ".DS_Store",
+          "target",
+          ".gradle",
+          "out",
+          ".turbo",
+          ".cache"
+        ],
+        "description": "Folders to ignore during code summarization"
+      },
+      "code2summarize.allowedExtensions": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "default": [".cs", ".py", ".jsx", ".ts", ".html", ".js"],
+        "description": "File extensions to include in the summarization"
       }
-    ]
-  },
+    }
+  }
+},
   "scripts": {
     "lint": "eslint .",
     "pretest": "npm run lint",
